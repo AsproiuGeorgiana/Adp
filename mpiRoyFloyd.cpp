@@ -1,31 +1,35 @@
 #include "mpi.h"
-#include <stdio.h>
-#include <stdlib.h>
 #include <iostream>
 using namespace std;
 
-#define N 5
+#define N 6
 
 int main(int argc, char *argv[])
 {
 	int a[N][N] = {
-		{0,2,299,50,299},
-		{2,0,3,299,299}, 
-		{299,3,0,1,8},
-		{10  ,299, 1,0,299},
-		{299, 299, 8 ,299, 0}
-		
+		{ 0, 2, 5, 999, 999, 999 },
+		{ 999, 0, 7, 1, 999, 8 },
+		{ 999, 999, 0, 4, 999, 999 },
+		{ 999, 999, 999, 0, 3, 999 },
+		{ 999, 999, 2, 999, 0, 3 },
+		{ 999, 5, 999, 2, 4, 0 }
 	};
-	int b[N][N];
-	int procid, proc;
+	int result[N][N];
+	int numprocs, rank;
 
 	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &procid);
-	MPI_Comm_size(MPI_COMM_WORLD, &proc);
-	
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+
+	/*if (rank == 0){
+		MPI_Bcast(a, N*N, MPI_INT, 0, MPI_COMM_WORLD);
+	}*/
+
+	//MPI_Barrier(MPI_COMM_WORLD);
+
 	for (int k = 0; k < N; k++)
 	{
-		for (int i = procid; i < N; i = i + proc)
+		for (int i = rank; i < N; i = i + numprocs)
 		{
 			for (int j = 0; j < N; j++)
 			{
@@ -33,22 +37,28 @@ int main(int argc, char *argv[])
 					a[i][j] = a[i][k] + a[k][j];
 			}
 		}
-			//minimul din a il punem in b
-		MPI_Reduce(a, b, N*N, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
-		
+		MPI_Reduce(a, result, N*N, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+		if (rank == 0) {
+			for (int i = 0; i < N; i++)
+				for (int j = 0; j < N; j++)
+					a[i][j] = result[i][j];
+			MPI_Bcast(a, N*N, MPI_INT, 0, MPI_COMM_WORLD);
+		}
+		MPI_Barrier(MPI_COMM_WORLD);
 	}
-	for (int i = 0; i < N; i ++)
-		{
+
+	if (rank == 0){
+		for (int i = 0; i < N; i++){
 			for (int j = 0; j < N; j++)
-			{
-				cout<<a[i][j]<<" ";
-				
-			}
-			cout<<endl;
-			
+				cout << a[i][j] << " ";
+			cout << "\n";
 		}
 
+	}
 
 	MPI_Finalize();
+
+
 	system("pause");
+	return 0;
 }
