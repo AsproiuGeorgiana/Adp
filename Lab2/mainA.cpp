@@ -1,77 +1,54 @@
-#include "mpi.h"
-#include <time.h>
 #include <iostream>
+#include <mpi.h>
+#include <math.h>
+
 using namespace std;
 
-#define SIZE 12
-#define NR 0
+#define SIZE 20
 
 int main(int argc, char *argv[])
 {
-	int rank, numProcs, slice, index;
-	int array[SIZE], segment[SIZE], found[SIZE], finalFound[SIZE + 10];
-	bool display = false;
+    int  rank;      
+    int  nrprocs;   // nr process
+	int arr[SIZE]={ 7, 8, 9, 1, 2, 3, 4, 5, 6 }; 
+	int i, x, inceput, sfarsit, rezultat;
+	int pozitie=0;
+	int cautat=6;
 
-	srand((unsigned int)time(NULL));
 
-	MPI_Init(&argc, &argv);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+    MPI_Init(&argc, &argv); /*START MPI */
 
-	slice = SIZE / numProcs;
-	if (SIZE % numProcs != 0)
-		++slice;
+    MPI_Comm_size(MPI_COMM_WORLD, &nrprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	MPI_Barrier(MPI_COMM_WORLD);
 
-	if (rank == 0)
-	{
-		cout << "Array elements are:\n";
-		for (int i = 0; i < SIZE; i++)
-		{
-			array[i] = rand() % 5;
-			cout << array[i] << " ";
-			finalFound[i] = -1;
-		}
-		//cout << "Searched number is: ";
-		//cin >> NR;
-		//cout << "\n";
-	}
+	MPI_Bcast(arr, SIZE, MPI_INT, 0, MPI_COMM_WORLD);
 
-	MPI_Scatter(array, slice, MPI_INT, segment, slice, MPI_INT, 0, MPI_COMM_WORLD);
-	cout << "\n\nRank: " << rank << ". Segement size: " << slice << "\n";
-
-	for (int i = 0; i < slice; i++)
-		found[i] = -1;
-
-	index = 0;
-	for (int i = 0; i < slice; i++)
-	{
-		if (segment[i] == NR)
-		{
-			found[++index] = i + rank * slice;
+	// search the number in portion of data 
+	x = SIZE/nrprocs; // must be an integer  
+	inceput = rank * x;
+	sfarsit = inceput + x;
+	for(i=inceput; i<sfarsit; i++) {
+		if(cautat==arr[i]){
+			pozitie=i;
 		}
 	}
 
-	MPI_Gather(found, slice, MPI_INT, finalFound, slice, MPI_INT, 0, MPI_COMM_WORLD);
 
-	if (rank == 0)
-	{
-		for (int i = 0; i < SIZE + 10; i++)
+	MPI_Reduce(&poz, &rezultat, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+
+	if(0 == rank) {
+		if(rezultat==0)
 		{
-			if (finalFound[i] >= 0)
-			{
-				if (!display)
-					cout << "\n\nNumber found on the follwing position(s): \n";
-				display = true;
-				cout << finalFound[i] << " ";
-			}
+			cout<<"Numarul nu a fost gasit!!\n";
 		}
-		if (!display)
-			cout << "\n\nNumber not found.";
+		else{
+			cout<<"Pozitia maxima "<< rezultat <<"\n";
+		}
 	}
 
-	MPI_Finalize();
-	cout << endl;
-	return 0;
+
+    MPI_Finalize(); // Exit Mpi
+    system("pause");
+    return 0;
 }
