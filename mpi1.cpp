@@ -10,8 +10,9 @@ int main(int argc, char *argv[]){
 
 	MPI_Init(&argc, &argv);
 	
-	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &procid);
+	MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+
 	
 	startTime = MPI_Wtime();
 	s = 0;
@@ -22,7 +23,6 @@ int main(int argc, char *argv[]){
 		
 	for (j = 0; j < M; j++){
 			nr = rand() % 10;
-			//nr = procid + j;
 			cout << nr << " ";
 			s = s + nr;
 	}
