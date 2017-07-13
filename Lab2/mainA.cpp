@@ -10,10 +10,10 @@ int main(int argc, char *argv[])
 {
     int  rank;      
     int  nrprocs;   // nr process
-	int arr[SIZE]={ 7, 8, 9, 1, 2, 3, 4, 5, 6 }; 
+	int arr[SIZE]={ 7, 4, 9, 1, 2, 3, 4, 5, 6 }; 
 	int i, x, inceput, sfarsit, rezultat;
 	int pozitie=0;
-	int cautat=6;
+	int cautat=4;
 
 
     MPI_Init(&argc, &argv); /*START MPI */
